@@ -20,3 +20,6 @@ local.properties
 
 # NDK
 *.so
+
+# UI design assets (no longer tracked)
+/ivcam-ui/

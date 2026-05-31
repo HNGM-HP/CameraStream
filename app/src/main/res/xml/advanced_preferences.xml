@@ -1,0 +1,21 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory app:title="高级">
+        <ListPreference
+            app:defaultValue="OFF"
+            app:entries="@array/pref_flicker_entries"
+            app:entryValues="@array/pref_flicker_values"
+            app:key="reduce_flicker"
+            app:title="减少闪烁" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="force_video_size"
+            app:title="强制视频尺寸" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="rule_of_thirds"
+            app:title="三分法" />
+        <Preference
+            app:key="battery_optimization"
+            app:title="关闭电池优化" />
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">质鉴诚监控</string>
+    <string name="searching">正在查找服务端…</string>
+    <string name="connect_to_pc">连接到电脑</string>
+    <string name="input_ip_msg">请输入服务端 IP 地址和端口</string>
+    <string name="connect">连接</string>
+    <string name="cancel">取消</string>
+    <string name="disconnected">已断开连接</string>
+    <string name="help_title">帮助</string>
+    <string name="help_content">质鉴诚监控是一款专业的远程摄像头直播软件。\n\n1. 请确保手机与电脑在同一局域网下。\n2. 在电脑端启动接收程序。\n3. 点击底部的 + 号输入电脑 IP 即可开始直播。\n4. 您可以在设置中调整清晰度和编码方式。</string>
+
+    <!-- Settings -->
+    <string name="pref_camera_title">选择摄像头</string>
+    <string name="pref_keep_screen_on_title">保持屏幕开启</string>
+    <string name="pref_keep_screen_on_summary">串流时禁止手机休眠</string>
+    <string name="pref_auto_connect_title">自动连接</string>
+    <string name="pref_auto_connect_summary">启动后自动搜索局域网服务端</string>
+    <string name="manual_connect_hint">自动连接已关闭，点击搜索或 + 手动连接</string>
+    <string name="pref_fill_preview_title">全屏预览</string>
+    <string name="pref_fill_preview_summary">开启后预览画面将填充整个屏幕（可能会裁剪）</string>
+    <string name="pref_torch_title">闪光灯</string>
+    <string name="pref_focus_title">对焦模式</string>
+    <string name="pref_zoom_title">变焦</string>
+    <string name="pref_video_bitrate_title">自定义码率 (Mbps)</string>
+    <string name="pref_video_bitrate_summary">设置为 0 则使用默认质量设置</string>
+    <string name="btn_torch">闪光灯</string>
+    <string name="btn_torch_off">关灯</string>
+    <string name="btn_zoom_in">放大</string>
+    <string name="btn_zoom_out">缩小</string>
+</resources>

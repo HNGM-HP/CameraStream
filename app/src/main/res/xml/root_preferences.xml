@@ -1,0 +1,84 @@
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="视频设置">
+
+        <ListPreference
+            app:defaultValue="0"
+            app:key="camera_id"
+            app:title="@string/pref_camera_title" />
+
+        <ListPreference
+            app:defaultValue="landscape"
+            app:entries="@array/pref_orientation_entries"
+            app:entryValues="@array/pref_orientation_values"
+            app:key="video_orientation"
+            app:title="视频方向" />
+
+        <ListPreference
+            app:defaultValue="1280x720"
+            app:entries="@array/pref_size_entries"
+            app:entryValues="@array/pref_size_values"
+            app:key="video_size"
+            app:title="视频尺寸" />
+
+        <ListPreference
+            app:defaultValue="30"
+            app:entries="@array/pref_fps_entries"
+            app:entryValues="@array/pref_fps_values"
+            app:key="video_fps"
+            app:title="视频帧率" />
+
+        <ListPreference
+            app:defaultValue="medium"
+            app:entries="@array/pref_quality_entries"
+            app:entryValues="@array/pref_quality_values"
+            app:key="video_quality"
+            app:title="视频质量" />
+
+        <SeekBarPreference
+            android:max="20"
+            app:defaultValue="0"
+            app:key="video_bitrate_v2"
+            app:min="0"
+            app:showSeekBarValue="true"
+            app:summary="@string/pref_video_bitrate_summary"
+            app:title="@string/pref_video_bitrate_title" />
+
+        <ListPreference
+            app:defaultValue="h264"
+            app:entries="@array/pref_encoder_entries"
+            app:entryValues="@array/pref_encoder_values"
+            app:key="video_encoder"
+            app:title="视频编码器" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="界面设置">
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="auto_connect"
+            app:summary="@string/pref_auto_connect_summary"
+            app:title="@string/pref_auto_connect_title" />
+
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="fill_preview"
+            app:summary="@string/pref_fill_preview_summary"
+            app:title="@string/pref_fill_preview_title" />
+
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="keep_screen_on"
+            app:summary="@string/pref_keep_screen_on_summary"
+            app:title="@string/pref_keep_screen_on_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="其它">
+        <Preference
+            app:key="help"
+            app:title="帮助" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

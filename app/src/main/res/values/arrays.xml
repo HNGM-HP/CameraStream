@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pref_orientation_entries">
+        <item>横向</item>
+        <item>纵向</item>
+    </string-array>
+    <string-array name="pref_orientation_values">
+        <item>landscape</item>
+        <item>portrait</item>
+    </string-array>
+
+    <string-array name="pref_size_entries">
+        <item>1920 x 1080</item>
+        <item>1280 x 720</item>
+        <item>640 x 480</item>
+    </string-array>
+    <string-array name="pref_size_values">
+        <item>1920x1080</item>
+        <item>1280x720</item>
+        <item>640x480</item>
+    </string-array>
+
+    <string-array name="pref_fps_entries">
+        <item>30</item>
+        <item>50</item>
+        <item>60</item>
+        <item>120</item>
+        <item>240</item>
+    </string-array>
+    <string-array name="pref_fps_values">
+        <item>30</item>
+        <item>50</item>
+        <item>60</item>
+        <item>120</item>
+        <item>240</item>
+    </string-array>
+
+    <string-array name="pref_quality_entries">
+        <item>高</item>
+        <item>中</item>
+        <item>低</item>
+    </string-array>
+    <string-array name="pref_quality_values">
+        <item>high</item>
+        <item>medium</item>
+        <item>low</item>
+    </string-array>
+
+    <string-array name="pref_encoder_entries">
+        <item>H.264</item>
+    </string-array>
+    <string-array name="pref_encoder_values">
+        <item>h264</item>
+    </string-array>
+
+    <string-array name="pref_flicker_entries">
+        <item>OFF</item>
+        <item>50Hz</item>
+        <item>60Hz</item>
+    </string-array>
+    <string-array name="pref_flicker_values">
+        <item>OFF</item>
+        <item>50</item>
+        <item>60</item>
+    </string-array>
+</resources>

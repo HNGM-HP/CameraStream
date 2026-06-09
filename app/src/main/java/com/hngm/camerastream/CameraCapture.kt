@@ -8,6 +8,8 @@ import android.hardware.camera2.CameraConstrainedHighSpeedCaptureSession
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.CaptureResult
+import android.hardware.camera2.TotalCaptureResult
 import android.hardware.camera2.params.MeteringRectangle
 import android.hardware.camera2.params.OutputConfiguration
 import android.hardware.camera2.params.SessionConfiguration
@@ -53,6 +55,24 @@ class CameraCapture(
     private var tapFocusActive = false
     private var encodedMirrorEnabled = false
     private var isRepeating = false
+
+    private val captureCallback = object : CameraCaptureSession.CaptureCallback() {
+        override fun onCaptureCompleted(
+            session: CameraCaptureSession,
+            request: CaptureRequest,
+            result: TotalCaptureResult
+        ) {
+            if (!tapFocusActive) return
+            val afState = result.get(CaptureResult.CONTROL_AF_STATE) ?: return
+            when (afState) {
+                CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED,
+                CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED -> {
+                    tapFocusActive = false
+                    updateRepeatingRequest()
+                }
+            }
+        }
+    }
 
     val characteristics: CameraCharacteristics
         get() = cameraCharacteristicsFor(cameraManager, cameraId)
@@ -165,9 +185,9 @@ class CameraCapture(
             val request = builder.build()
             if (session is CameraConstrainedHighSpeedCaptureSession) {
                 val requests = session.createHighSpeedRequestList(request)
-                session.setRepeatingBurst(requests, null, backgroundHandler)
+                session.setRepeatingBurst(requests, captureCallback, backgroundHandler)
             } else {
-                session.setRepeatingRequest(request, null, backgroundHandler)
+                session.setRepeatingRequest(request, captureCallback, backgroundHandler)
             }
             isRepeating = true
         } catch (e: Exception) {

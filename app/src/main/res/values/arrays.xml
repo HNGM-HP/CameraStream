@@ -46,6 +46,17 @@
         <item>low</item>
     </string-array>
 
+    <string-array name="pref_latency_mode_entries">
+        <item>速度优先</item>
+        <item>均衡</item>
+        <item>质量优先</item>
+    </string-array>
+    <string-array name="pref_latency_mode_values">
+        <item>speed</item>
+        <item>balanced</item>
+        <item>quality</item>
+    </string-array>
+
     <string-array name="pref_encoder_entries">
         <item>H.264</item>
     </string-array>

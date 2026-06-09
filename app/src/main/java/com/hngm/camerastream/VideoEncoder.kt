@@ -3,6 +3,7 @@ package com.hngm.camerastream
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
+import android.os.Build
 import android.os.Bundle
 import android.view.Surface
 import java.nio.ByteBuffer
@@ -12,7 +13,8 @@ class VideoEncoder(
     private val height: Int = 1080,
     private val fps: Int = 30,
     private val bitrate: Int = 2_000_000,
-    private val mimeType: String = MediaFormat.MIMETYPE_VIDEO_AVC
+    private val mimeType: String = MediaFormat.MIMETYPE_VIDEO_AVC,
+    private val latencyMode: String = "balanced"
 ) {
     private var mediaCodec: MediaCodec? = null
     private var _inputSurface: Surface? = null
@@ -33,6 +35,7 @@ class VideoEncoder(
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
             setInteger(MediaFormat.KEY_BITRATE_MODE,
                 MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR)
+            applyLatencyMode(this)
         }
 
         mediaCodec = MediaCodec.createEncoderByType(mimeType)
@@ -67,6 +70,32 @@ class VideoEncoder(
             }
         })
         mediaCodec?.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+    }
+
+    private fun applyLatencyMode(format: MediaFormat) {
+        when (latencyMode) {
+            "speed" -> {
+                format.setInteger(MediaFormat.KEY_PRIORITY, 0)
+                format.setFloat(MediaFormat.KEY_OPERATING_RATE, fps.toFloat())
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    format.setInteger(MediaFormat.KEY_LATENCY, 0)
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    format.setInteger(MediaFormat.KEY_OUTPUT_REORDER_DEPTH, 0)
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    format.setInteger(MediaFormat.KEY_MAX_B_FRAMES, 0)
+                    format.setFloat(MediaFormat.KEY_MAX_FPS_TO_ENCODER, fps.toFloat())
+                }
+            }
+            "balanced" -> {
+                format.setInteger(MediaFormat.KEY_PRIORITY, 0)
+                format.setFloat(MediaFormat.KEY_OPERATING_RATE, fps.toFloat())
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    format.setInteger(MediaFormat.KEY_LATENCY, 1)
+                }
+            }
+        }
     }
 
     fun start() {

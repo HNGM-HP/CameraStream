@@ -37,6 +37,13 @@
             app:key="video_quality"
             app:title="视频质量" />
 
+        <ListPreference
+            app:defaultValue="balanced"
+            app:entries="@array/pref_latency_mode_entries"
+            app:entryValues="@array/pref_latency_mode_values"
+            app:key="video_latency_mode"
+            app:title="延迟模式" />
+
         <SeekBarPreference
             android:max="20"
             app:defaultValue="0"

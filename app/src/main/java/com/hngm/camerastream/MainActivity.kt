@@ -127,6 +127,7 @@ class MainActivity : AppCompatActivity() {
         val bufferHeight: Int, // Raw buffer height (from supported list)
         val fps: Int,
         val bitrate: Int,
+        val latencyMode: String,
         val codec: String,
         val mimeType: String
     ) {
@@ -761,8 +762,9 @@ class MainActivity : AppCompatActivity() {
 
         val codec = prefs.getString("video_encoder", "h264") ?: "h264"
         val mimeType = if (codec == "h265") MediaFormat.MIMETYPE_VIDEO_HEVC else MediaFormat.MIMETYPE_VIDEO_AVC
+        val latencyMode = prefs.getString("video_latency_mode", "balanced") ?: "balanced"
 
-        return VideoConfig(width, height, baseWidth, baseHeight, fps, bitrate, codec, mimeType)
+        return VideoConfig(width, height, baseWidth, baseHeight, fps, bitrate, latencyMode, codec, mimeType)
     }
 
     private fun supportedVideoSizes(): List<String> {
@@ -859,6 +861,7 @@ class MainActivity : AppCompatActivity() {
             .put("video_fps", JSONArray(fpsValues))
             .put("video_fps_by_size", supportedVideoFpsBySizeJson())
             .put("video_quality", JSONArray(listOf("high", "medium", "low")))
+            .put("video_latency_mode", JSONArray(listOf("speed", "balanced", "quality")))
             .put("video_orientation", JSONArray(listOf("landscape", "portrait")))
             .put("video_encoder", JSONArray(encoders))
             .put("battery_percent", currentBatteryPercent() ?: JSONObject.NULL)
@@ -882,6 +885,7 @@ class MainActivity : AppCompatActivity() {
             .put("video_size", currentResolution)
             .put("video_fps", currentFps)
             .put("video_quality", prefs.getString("video_quality", "medium") ?: "medium")
+            .put("video_latency_mode", prefs.getString("video_latency_mode", "balanced") ?: "balanced")
             .put("video_orientation", prefs.getString("video_orientation", "landscape") ?: "landscape")
             .put("video_encoder", currentCodec)
             .put("video_format", currentVideoFormat)
@@ -1033,7 +1037,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createVideoEncoder(config: VideoConfig): VideoEncoder {
-        return VideoEncoder(config.width, config.height, config.fps, config.bitrate, config.mimeType).apply {
+        return VideoEncoder(config.width, config.height, config.fps, config.bitrate, config.mimeType, config.latencyMode).apply {
             configure()
             onNalUnit = { buf, info -> wsClient?.sendFrame(buf, info) }
             onError = { msg -> runOnUiThread { Toast.makeText(this@MainActivity, msg, Toast.LENGTH_LONG).show() } }
@@ -1821,6 +1825,11 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     settings["video_quality"]?.let { editor.putString("video_quality", it) }
+                    settings["video_latency_mode"]?.let {
+                        if (it in listOf("speed", "balanced", "quality")) {
+                            editor.putString("video_latency_mode", it)
+                        }
+                    }
                     settings["video_orientation"]?.let { editor.putString("video_orientation", it) }
                     editor.apply()
 
@@ -1837,7 +1846,7 @@ class MainActivity : AppCompatActivity() {
                     settings["white_balance_kelvin"]?.let { setWhiteBalanceKelvin(parseNullableIntSetting(it)) }
                     settings["focus_distance"]?.let { setFocusDistance(parseNullableFloatSetting(it)) }
 
-                    if (settings.any { it.key in listOf("camera_id", "video_encoder", "video_size", "video_fps", "video_quality", "video_orientation", "video_bitrate_v2") }) {
+                    if (settings.any { it.key in listOf("camera_id", "video_encoder", "video_size", "video_fps", "video_quality", "video_latency_mode", "video_orientation", "video_bitrate_v2") }) {
                         applyRotationSetting()
                         restartActiveStream()
                     }

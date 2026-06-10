@@ -55,13 +55,14 @@ class WebSocketClient(
 
             override fun onMessage(webSocket: WebSocket, text: String) {
                 try {
-                    when {
-                        text.contains("\"ready\"") -> onReady?.invoke()
-                        text.contains("settings_update") -> {
-                            val json = org.json.JSONObject(text)
+                    val json = org.json.JSONObject(text)
+                    val type = json.optString("type", "")
+                    when (type) {
+                        "ready" -> onReady?.invoke()
+                        "settings_update" -> {
                             val map = mutableMapOf<String, String>()
                             for (key in json.keys()) {
-                                if (key != "type") map[key] = json.getString(key)
+                                if (key != "type") map[key] = json.get(key).toString()
                             }
                             onSettingsUpdate?.invoke(map)
                         }

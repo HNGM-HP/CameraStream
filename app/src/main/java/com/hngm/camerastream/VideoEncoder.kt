@@ -95,6 +95,10 @@ class VideoEncoder(
                     format.setInteger(MediaFormat.KEY_LATENCY, 1)
                 }
             }
+            "quality" -> {
+                format.setInteger(MediaFormat.KEY_PRIORITY, 1)
+                // No KEY_LATENCY / KEY_OPERATING_RATE — let encoder optimize for quality
+            }
         }
     }
 

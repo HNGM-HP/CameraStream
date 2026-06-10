@@ -55,6 +55,7 @@ class CameraCapture(
     private var tapFocusActive = false
     private var encodedMirrorEnabled = false
     private var isRepeating = false
+    private var closed = false
 
     private val captureCallback = object : CameraCaptureSession.CaptureCallback() {
         override fun onCaptureCompleted(
@@ -118,6 +119,11 @@ class CameraCapture(
         val surfaces = listOfNotNull(previewSurface, encoderSurface).toMutableList()
         if (surfaces.isEmpty()) {
             onError?.invoke("No output surfaces configured")
+            return
+        }
+
+        if (cameraSpec.physicalId != null && Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            onError?.invoke("Physical camera ID requires Android P+")
             return
         }
 
@@ -198,6 +204,7 @@ class CameraCapture(
     private fun shouldUseHighSpeedSession(): Boolean {
         if (fps <= 60) return false
         if (cameraSpec.physicalId != null) return false
+        if (encodedMirrorEnabled) return false
         val configs = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
             ?: return false
         val size = Size(width, height)
@@ -214,7 +221,9 @@ class CameraCapture(
         builder.set(CaptureRequest.FLASH_MODE, if (torchEnabled) CaptureRequest.FLASH_MODE_TORCH else CaptureRequest.FLASH_MODE_OFF)
         applyMeteringRegions(builder)
 
-        val manualExposure = manualIso != null || manualExposureTimeNs != null
+        // Require BOTH ISO and exposure time to be set manually before disabling AE;
+        // Camera2 API does not support partially overriding AE parameters.
+        val manualExposure = manualIso != null && manualExposureTimeNs != null
         if (manualExposure) {
             builder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF)
             builder.set(CaptureRequest.CONTROL_AE_LOCK, false)
@@ -472,6 +481,7 @@ class CameraCapture(
     }
 
     private fun updateRepeatingRequest() {
+        if (closed) return
         val session = captureSession ?: return
         if (isRepeating) {
             startRepeatingRequest(session)
@@ -509,6 +519,8 @@ class CameraCapture(
     }
 
     fun close() {
+        if (closed) return
+        closed = true
         try {
             captureSession?.stopRepeating()
             captureSession?.abortCaptures()

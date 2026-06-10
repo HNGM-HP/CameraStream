@@ -95,6 +95,7 @@ class MainActivity : AppCompatActivity() {
     private var activeVideoHeight = 720
     private var reconnectAttempts = 0
     private val maxReconnectAttempts = 5
+    private var cameraPreviewSurface: Surface? = null
     
     private var isTorchOn = false
     private var isMirrorOn = false
@@ -1040,7 +1041,18 @@ class MainActivity : AppCompatActivity() {
         return VideoEncoder(config.width, config.height, config.fps, config.bitrate, config.mimeType, config.latencyMode).apply {
             configure()
             onNalUnit = { buf, info -> wsClient?.sendFrame(buf, info) }
-            onError = { msg -> runOnUiThread { Toast.makeText(this@MainActivity, msg, Toast.LENGTH_LONG).show() } }
+            onError = { msg ->
+                runOnUiThread {
+                    Log.e(TAG, "Encoder error: $msg")
+                    if (isConnected && videoEncoder != null) {
+                        restartEncoder()
+                        if (!screenOffRequested && surfacePreview.isAvailable) {
+                            restartCameraSession()
+                            startCameraSession()
+                        }
+                    }
+                }
+            }
             start()
         }
     }
@@ -1774,6 +1786,7 @@ class MainActivity : AppCompatActivity() {
                         reconnectOnResume = true
                         isConnected = false
                         isStreaming = false
+                        wsClient?.disconnect()
                         wsClient = null
                         releaseVideoEncoder()
                         textStatus.text = "后台暂停，返回后重连..."
@@ -1879,7 +1892,9 @@ class MainActivity : AppCompatActivity() {
             isMirrorOn
         )
         logCameraOrientation(config, orientationConfig)
+        cameraPreviewSurface?.release()
         val previewSurface = Surface(st)
+        cameraPreviewSurface = previewSurface
         cameraSessionStarted = true
 
         val sessionCameraId = currentCameraId
@@ -1932,6 +1947,8 @@ class MainActivity : AppCompatActivity() {
             cameraCapture = null
             videoEncoder?.release()
             videoEncoder = null
+            cameraPreviewSurface?.release()
+            cameraPreviewSurface = null
             isStreaming = false
             isConnected = false
             cameraSessionStarted = false

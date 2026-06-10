@@ -6,6 +6,7 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.net.SocketTimeoutException
 
 class DiscoveryClient(
     private val deviceId: String,
@@ -34,26 +35,27 @@ class DiscoveryClient(
                 sendBroadcast(DISCOVER_MSG)
                 sendBroadcast(clientHelloMsg())
                 // Listen for response
+                socket?.soTimeout = 8000
                 val buf = ByteArray(256)
                 while (isActive) {
                     val packet = DatagramPacket(buf, buf.size)
-                    withTimeout(8000) {
-                        while (isActive) {
-                            socket?.receive(packet)
-                            val data = String(packet.data, 0, packet.length)
-                            if (data.contains("server_hello")) {
-                                val host = packet.address.hostAddress ?: continue
-                                val port = extractPort(data)
-                                if (port > 0) {
-                                    onFound(host, port)
-                                    return@withTimeout
-                                }
-                            }
+                    try {
+                        socket?.receive(packet)
+                    } catch (_: SocketTimeoutException) {
+                        // Timeout — send another broadcast
+                        sendBroadcast(DISCOVER_MSG)
+                        sendBroadcast(clientHelloMsg())
+                        continue
+                    }
+                    val data = String(packet.data, 0, packet.length)
+                    if (data.contains("server_hello")) {
+                        val host = packet.address.hostAddress ?: continue
+                        val port = extractPort(data)
+                        if (port > 0) {
+                            onFound(host, port)
+                            return@launch
                         }
                     }
-                    // Timeout — send another broadcast
-                    sendBroadcast(DISCOVER_MSG)
-                    sendBroadcast(clientHelloMsg())
                 }
             } catch (e: CancellationException) {
                 // Normal stop

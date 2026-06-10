@@ -225,7 +225,7 @@ class MainActivity : AppCompatActivity() {
         btnRefresh.setOnClickListener {
             textIpAddress.text = getLocalIpAddress()
             if (!isConnected) {
-                tryAutoConnect()
+                tryAutoConnect(force = true)
             }
         }
 
@@ -386,7 +386,18 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         if (!::cameraManager.isInitialized || !::surfacePreview.isInitialized) return
         appInBackground = false
-        if (reconnectOnResume && serverHost.isNotBlank()) {
+        val prefsAuto = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("auto_connect", true)
+        if (!prefsAuto) {
+            // auto_connect 已被关闭：停止后台扫描，避免设置关闭后仍被动连上
+            if (isScanning) {
+                discoveryClient?.stop()
+                discoveryClient = null
+                isScanning = false
+                if (!isConnected) textStatus.setText(R.string.manual_connect_hint)
+            }
+            reconnectOnResume = false
+        }
+        if (reconnectOnResume && serverHost.isNotBlank() && prefsAuto) {
             reconnectOnResume = false
             startStreaming(serverHost)
             return
@@ -1641,16 +1652,23 @@ class MainActivity : AppCompatActivity() {
         clientBeacon = ClientBeacon(serverCameraId, getDeviceName()).also { it.start() }
     }
 
-    private fun tryAutoConnect() {
+    private fun tryAutoConnect(force: Boolean = false) {
         if (isScanning || isConnected) return
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        if (!force && !prefs.getBoolean("auto_connect", true)) {
+            textStatus.setText(R.string.manual_connect_hint)
+            return
+        }
         isScanning = true
         textStatus.text = "正在扫描局域网服务端..."
 
         discoveryClient = DiscoveryClient(serverCameraId, getDeviceName()) { host, port ->
             runOnUiThread {
-                if (!isConnected && isScanning) {
+                if (!isConnected && isScanning &&
+                    (force || PreferenceManager.getDefaultSharedPreferences(this).getBoolean("auto_connect", true))) {
                     isScanning = false
                     discoveryClient?.stop()
+                    discoveryClient = null
                     startStreaming("$host:$port")
                 }
             }
@@ -1793,16 +1811,14 @@ class MainActivity : AppCompatActivity() {
                         return@runOnUiThread
                     }
                     Toast.makeText(this@MainActivity, reason, Toast.LENGTH_SHORT).show()
-                    if (reconnectAttempts < maxReconnectAttempts) {
-                        reconnectAttempts++
-                        textStatus.text = "断开，${2 * reconnectAttempts}s 后重连 ($reconnectAttempts/$maxReconnectAttempts)..."
-                        circleContainer.postDelayed({
-                            if (!isConnected) {
-                                startStreaming(host)
-                            }
-                        }, (2000L * reconnectAttempts).coerceAtMost(10000L))
+                    // 服务端不可用：立即恢复初始（搜索）页面，避免预览停留在"看似已连接"的状态
+                    stopStreaming()
+                    val autoConnect = PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
+                        .getBoolean("auto_connect", true)
+                    if (autoConnect) {
+                        tryAutoConnect()
                     } else {
-                        stopStreaming()
+                        textStatus.setText(R.string.manual_connect_hint)
                     }
                 }
             }
